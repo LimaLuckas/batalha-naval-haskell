@@ -63,6 +63,9 @@ adicionarElemento matriz i j elemento =
         (antes', _:depois') = splitAt j linha
     in antes ++ [antes' ++ elemento : depois'] ++ depois 
 
+imprimirTabuleiro :: Matriz -> IO ()
+imprimirTabuleiro = mapM_ putStrLn
+
 
 imprimirTabuleiro :: Matriz -> IO()
 imprimirTabuleiro = mapM_ putStrLn
