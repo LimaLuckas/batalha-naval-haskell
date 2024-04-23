@@ -44,4 +44,28 @@ gerarPosicao = do
         (j, _) = randomR (0, 9) gen'
     return (i, j)
 
+-- Função para verificar se o jogador acertou a posição do navio ou não
+verificarJogada :: (Int, Int) -> Matriz -> IO Matriz
+verificarJogada(i, j) matriz = do
+    let elemento = matriz !! i !! j
+    if elemento /= 'O'
+        then do
+            putStrLn "Você acertou um navio!"
+            return $ adicionarElemento matriz i j 'X'
+        else do
+            putStrLn "Você não acertou um navio."
+            return $ adicionarElemento matriz i j '-'
+
+-- Função para substituir um elemento em determinada posição do tabuleiro
+adicionarElemento :: Matriz -> Int -> Int -> Char -> Matriz
+adicionarElemento matriz i j elemento =
+    let (antes, linha:depois) = splitAt i matriz
+        (antes', _:depois') = splitAt j linha
+    in antes ++ [antes' ++ elemento : depois'] ++ depois 
+
+
+imprimirTabuleiro :: Matriz -> IO()
+imprimirTabuleiro = mapM_ putStrLn
+
+    
 
