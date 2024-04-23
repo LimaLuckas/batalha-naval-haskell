@@ -67,8 +67,7 @@ imprimirTabuleiro :: Matriz -> IO ()
 imprimirTabuleiro = mapM_ putStrLn
 
 
-imprimirTabuleiro :: Matriz -> IO()
-imprimirTabuleiro = mapM_ putStrLn
+
 
     
 
