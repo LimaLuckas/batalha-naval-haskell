@@ -67,6 +67,37 @@ imprimirTabuleiro :: Matriz -> IO ()
 imprimirTabuleiro = mapM_ putStrLn
 
 
+-- Função principal do jogo
+main :: IO ()
+main = do
+    putStrLn "Bem-vindo ao jogo de Batalha Naval!"
+    let tabuleiroInicial = criarMatriz
+    tabuleiroFinal <- loopJogo tabuleiroInicial 0 10 -- O terceiro argumento é o número máximo de jogadas
+    if all (== '-') (concat tabuleiroFinal)
+        then putStrLn "Todos os navios foram afundados! Parabéns, Você venceu!"
+        else putStrLn "Você perdeu!"
+    imprimirTabuleiro tabuleiroFinal
+
+-- Loop do jogo
+loopJogo :: Matriz -> Int -> Int -> IO Matriz
+loopJogo tabuleiro jogadas maxJogadas
+    | jogadas == maxJogadas = return tabuleiro
+    | otherwise = do
+        imprimirTabuleiro tabuleiro
+        putStrLn "Faça uma jogada (linha coluna):"
+        (i, j) <- lerJogada
+        novoTabuleiro <- verificarJogada (i, j) tabuleiro
+        if all (== '-') (concat novoTabuleiro)
+            then return novoTabuleiro
+            else loopJogo novoTabuleiro (jogadas + 1) maxJogadas
+
+-- Função para ler a jogada do jogador
+lerJogada :: IO (Int, Int)
+lerJogada = do
+    putStrLn "Digite as coordenadas (linha coluna):"
+    read <$> getLine
+
+
 
 
     
