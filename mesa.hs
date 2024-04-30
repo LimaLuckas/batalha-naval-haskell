@@ -16,9 +16,12 @@ criarMatriz = replicate 10 (replicate 10 'O')
 adicionarVetor :: Matriz -> Int -> Int -> [Int] -> Matriz
 adicionarVetor matriz i j vetor
     | length vetor > 10 = error "O comprimento do vetor é maior que o tamanho da matriz."
-    | i < 0 || i + length vetor > 10 || j < 0 || j >= 10 = error "O vetor não cabe na matriz a partir da posição inicial."
-    | otherwise = adicionarVetor' matriz i j vetor
+    | i < 0 || i >= 10 || j < 0 || j >= 10 = error "A posição inicial está fora dos limites da matriz."
+    | otherwise = adicionarVetor' matriz i j (ajustarVetor vetor)
     where
+        ajustarVetor :: [Int] -> [Int]
+        ajustarVetor v = take (min (10 - j) (length v)) v  -- Ajusta o comprimento do vetor para caber na matriz
+
         adicionarVetor' :: Matriz -> Int -> Int -> [Int] -> Matriz
         adicionarVetor' [] _ _ _ = []
         adicionarVetor' (linha:rest) indiceLinha indiceColuna vetor
@@ -28,14 +31,13 @@ adicionarVetor matriz i j vetor
         adicionarVetorALinha :: [Char] -> Int -> [Int] -> [Char]
         adicionarVetorALinha [] _ _ = []
         adicionarVetorALinha (x:xs) indiceColuna vetor
-            | indiceColuna == 0 = vetorChar ++ adicionarVetorALinha xs (indiceColuna - 1) vetor
+            | indiceColuna == 0 = vetorChar ++ adicionarVetorALinha xs (indiceColuna - 1) (drop (length vetorChar) vetor)
             | otherwise = x : adicionarVetorALinha xs (indiceColuna - 1) vetor
             where
                 vetorChar = [intToDigit i | i <- vetor]
-
 -- Função para gerar um vetor aleatório de acordo com o número de posições de um navio
 gerarVetor :: Navio -> IO [Int]
-gerarVetor navio = take (posicoes navio) . randomRs (0, 9) <$> newStdGen
+gerarVetor navio = take (posicoes navio) <$> randomRs (0, 9) <$> newStdGen
 
 -- Função para gerar uma posição aleatória na matriz
 gerarPosicao :: IO (Int, Int)
@@ -68,9 +70,9 @@ main = do
     let maxJogadas = 30
     let tabuleiroInicial = criarMatriz
     navios <- criarNavios
-    tabuleiroComNavios <- foldM colocarNavioAleatoriamente tabuleiroInicial navios
+    tabuleiroComNavios <- foldM (\tabuleiro navio -> colocarNavioAleatoriamente tabuleiro navio) tabuleiroInicial navios
     tabuleiroFinal <- loopJogo tabuleiroComNavios 0 maxJogadas
-    if all (all (== '-')) tabuleiroFinal
+    if all (== '-') (concat tabuleiroFinal)
         then putStrLn "Todos os navios foram afundados! Parabéns, Você venceu!"
         else putStrLn "Você perdeu!"
     imprimirTabuleiro tabuleiroFinal
@@ -84,7 +86,7 @@ loopJogo tabuleiro jogadas maxJogadas
         putStrLn "Faça uma jogada (linha coluna):"
         (i, j) <- lerJogada
         novoTabuleiro <- verificarJogada (i, j) tabuleiro
-        if all (all (== '-')) novoTabuleiro
+        if all (== '-') (concat novoTabuleiro)
             then return novoTabuleiro
             else loopJogo novoTabuleiro (jogadas + 1) maxJogadas
 
@@ -99,7 +101,7 @@ lerJogada = do
         else do
             putStrLn "Coordenadas inválidas. Tente novamente."
             lerJogada
-
+            
 -- Função para verificar se o jogador acertou a posição do navio ou não
 verificarJogada :: (Int, Int) -> Matriz -> IO Matriz
 verificarJogada (i, j) matriz = do
@@ -121,7 +123,7 @@ adicionarElemento :: Matriz -> Int -> Int -> Char -> Matriz
 adicionarElemento matriz i j elemento =
     let (antes, linha:depois) = splitAt i matriz
         (antes', _:depois') = splitAt j linha
-    in antes ++ [antes' ++ elemento : depois'] ++ depois
+    in antes ++ [antes' ++ elemento : depois'] ++ depois 
 
 -- Função para imprimir o tabuleiro
 imprimirTabuleiro :: Matriz -> IO ()
@@ -134,8 +136,3 @@ colocarNavioAleatoriamente matriz navio = do
     if posicaoValida i j
         then return (adicionarNavio matriz navio i j)
         else colocarNavioAleatoriamente matriz navio
-
-
-
-
-
