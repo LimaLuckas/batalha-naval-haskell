@@ -37,7 +37,7 @@ adicionarVetor matriz i j vetor
                 vetorChar = [intToDigit i | i <- vetor]
 -- Função para gerar um vetor aleatório de acordo com o número de posições de um navio
 gerarVetor :: Navio -> IO [Int]
-gerarVetor navio = take (posicoes navio) <$> randomRs (0, 9) <$> newStdGen
+gerarVetor navio = take (posicoes navio) . randomRs (0, 9) <$> newStdGen
 
 -- Função para gerar uma posição aleatória na matriz
 gerarPosicao :: IO (Int, Int)
@@ -70,9 +70,9 @@ main = do
     let maxJogadas = 30
     let tabuleiroInicial = criarMatriz
     navios <- criarNavios
-    tabuleiroComNavios <- foldM (\tabuleiro navio -> colocarNavioAleatoriamente tabuleiro navio) tabuleiroInicial navios
+    tabuleiroComNavios <- foldM colocarNavioAleatoriamente tabuleiroInicial navios
     tabuleiroFinal <- loopJogo tabuleiroComNavios 0 maxJogadas
-    if all (== '-') (concat tabuleiroFinal)
+    if all (all (== '-')) tabuleiroFinal
         then putStrLn "Todos os navios foram afundados! Parabéns, Você venceu!"
         else putStrLn "Você perdeu!"
     imprimirTabuleiro tabuleiroFinal
@@ -86,7 +86,7 @@ loopJogo tabuleiro jogadas maxJogadas
         putStrLn "Faça uma jogada (linha coluna):"
         (i, j) <- lerJogada
         novoTabuleiro <- verificarJogada (i, j) tabuleiro
-        if all (== '-') (concat novoTabuleiro)
+        if all (all (== '-')) novoTabuleiro
             then return novoTabuleiro
             else loopJogo novoTabuleiro (jogadas + 1) maxJogadas
 
@@ -101,7 +101,7 @@ lerJogada = do
         else do
             putStrLn "Coordenadas inválidas. Tente novamente."
             lerJogada
-            
+
 -- Função para verificar se o jogador acertou a posição do navio ou não
 verificarJogada :: (Int, Int) -> Matriz -> IO Matriz
 verificarJogada (i, j) matriz = do
@@ -123,7 +123,7 @@ adicionarElemento :: Matriz -> Int -> Int -> Char -> Matriz
 adicionarElemento matriz i j elemento =
     let (antes, linha:depois) = splitAt i matriz
         (antes', _:depois') = splitAt j linha
-    in antes ++ [antes' ++ elemento : depois'] ++ depois 
+    in antes ++ [antes' ++ elemento : depois'] ++ depois
 
 -- Função para imprimir o tabuleiro
 imprimirTabuleiro :: Matriz -> IO ()
